@@ -1,0 +1,5 @@
+DB name : sample_webservice_db
+Username : dbuser
+Password : dbuserpassword
+Encrypted passowrd : tZTfehMYyz4EO0F0uY8fZItE7K35RtkA
+Password encryption key : sample_webservice
