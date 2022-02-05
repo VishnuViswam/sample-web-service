@@ -1,8 +1,8 @@
-package com.sample.webservice.serviceimpl;
+package com.sample.webservice.serviceimpl.v1;
 
 import com.sample.webservice.entity.UserAccounts;
 import com.sample.webservice.repositories.UserAccountsRepository;
-import com.sample.webservice.service.UserAccountsService;
+import com.sample.webservice.service.v1.UserAccountsService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;

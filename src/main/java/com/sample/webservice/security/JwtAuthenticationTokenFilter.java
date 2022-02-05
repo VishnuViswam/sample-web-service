@@ -1,12 +1,14 @@
 package com.sample.webservice.security;
 
-import com.sample.webservice.models.ApiResponse;
+import com.sample.webservice.exceptions.UnknownException;
+import com.sample.webservice.models.ApiResponseWithCode;
 import com.sample.webservice.models.JwtAuthenticationToken;
-import com.sample.webservice.service.GeneralServices;
+import com.sample.webservice.service.v1.GeneralServices;
 import com.sample.webservice.util.Constants;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.MediaType;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.web.authentication.AbstractAuthenticationProcessingFilter;
@@ -32,7 +34,7 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
     private GeneralServices generalServices;
 
     public JwtAuthenticationTokenFilter() {
-        // This configuration will filter every webservice request which have following name in the URL.
+        // This configuration will filter every webservice request which have the following name in the URL.
         super("/api/**");
     }
 
@@ -41,14 +43,12 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
                                                 HttpServletResponse httpServletResponse) throws AuthenticationException, IOException, ServletException {
 
         String authorization = httpServletRequest.getHeader(Constants.AUTHORIZATION__HEADER_KEY);
-        ApiResponse apiResponse = new ApiResponse();
         if (authorization == null || authorization.isBlank() ||
                 !authorization.startsWith(Constants.AUTHORIZATION__HEADER_VALUE_STARTING_BEARER)) {
-            apiResponse.setStatus(false);
-            apiResponse.setData(null);
-            apiResponse.setMessage(Constants.TOKEN_IS_MISSING_MESSAGE);
             httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-            httpServletResponse.getWriter().write(generalServices.buildJsonData(apiResponse));
+            httpServletResponse.setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+            httpServletResponse.getWriter().write(generalServices.buildJsonData(
+                    new ApiResponseWithCode(Constants.UNAUTHORIZED_ERROR_CODE, Constants.UNAUTHORIZED_ERROR_ERROR_MESSAGE)));
             httpServletResponse.getWriter().flush();
             httpServletResponse.getWriter().close();
             logger.error("Authentication : Error : Invalid in the requests");
@@ -62,14 +62,14 @@ public class JwtAuthenticationTokenFilter extends AbstractAuthenticationProcessi
             } catch (Exception e) {
                 if (e.getMessage().equals(Constants.TOKEN_IS_EXPIRED)) {
                     httpServletResponse.setStatus(HttpServletResponse.SC_UNAUTHORIZED);
-                    apiResponse.setStatus(false);
-                    apiResponse.setData(null);
-                    apiResponse.setMessage(Constants.TOKEN_IS_EXPIRED);
-                    httpServletResponse.getWriter().write(generalServices.buildJsonData(apiResponse));
+                    httpServletResponse.setHeader("Content-Type", MediaType.APPLICATION_JSON_VALUE);
+                    httpServletResponse.getWriter().write(generalServices.buildJsonData(
+                            new ApiResponseWithCode(Constants.INVALID_TOKEN_ERROR_CODE, Constants.INVALID_TOKEN_ERROR_ERROR_MESSAGE)
+                    ));
                     httpServletResponse.getWriter().flush();
                     httpServletResponse.getWriter().close();
                 } else {
-                    e.printStackTrace();
+                    throw new UnknownException();
                 }
             }
 

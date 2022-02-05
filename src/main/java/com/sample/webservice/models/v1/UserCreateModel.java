@@ -1,8 +1,11 @@
-package com.sample.webservice.models;
+package com.sample.webservice.models.v1;
 
 
 import com.fasterxml.jackson.annotation.JsonFormat;
 
+import javax.validation.constraints.Min;
+import javax.validation.constraints.NotBlank;
+import javax.validation.constraints.NotNull;
 import java.util.Calendar;
 
 /**
@@ -12,12 +15,15 @@ import java.util.Calendar;
  * @version 1.0
  * @since 2020-09-26
  */
-public class CustomUser {
+public class UserCreateModel {
 
+    @Min(0)
     long userId;
 
+    @NotBlank
     private String username;
 
+    @NotBlank
     private String password;
 
     private String fullName;
@@ -26,6 +32,7 @@ public class CustomUser {
 
     private Long phoneNumber;
 
+    @NotNull
     private Integer roleId;
 
     private short status;
@@ -33,7 +40,7 @@ public class CustomUser {
     @JsonFormat(pattern = "dd-MM-yyyy hh:mm a")
     private Calendar createdDate;
 
-    public CustomUser() {
+    public UserCreateModel() {
         super();
     }
 

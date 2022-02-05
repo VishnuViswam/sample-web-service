@@ -1,8 +1,8 @@
 package com.sample.webservice;
 
 import com.ulisesbocchio.jasyptspringboot.annotation.EnableEncryptableProperties;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.boot.web.servlet.support.SpringBootServletInitializer;
@@ -17,7 +17,7 @@ import org.springframework.boot.web.servlet.support.SpringBootServletInitializer
 @SpringBootApplication
 @EnableEncryptableProperties
 public class SampleWebservice extends SpringBootServletInitializer {
-	private static final Logger logger = LogManager.getLogger(SampleWebservice.class);
+	private static final Logger logger = LoggerFactory.getLogger(SampleWebservice.class);
 
 	{
 		logger.info("<<<----- SampleWebservice application is starting ----->>>");

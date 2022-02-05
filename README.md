@@ -5,14 +5,14 @@
 </p>
 
 
-[![Platform](https://img.shields.io/badge/Java-11%2B-red)](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
-[![Framework](https://img.shields.io/badge/Spring%20Boot-2.2.6-green)](https://spring.io/projects/spring-boot)
+[![Platform](https://img.shields.io/badge/Java-14-red)](https://www.oracle.com/java/technologies/javase-jdk11-downloads.html)
+[![Framework](https://img.shields.io/badge/Spring%20Boot-2.5.2-green)](https://spring.io/projects/spring-boot)
 [![Data Base](https://img.shields.io/badge/SQL%20Server-2012-yellow)](https://www.microsoft.com/en-us/download/details.aspx?id=29062)
 [![Security](https://img.shields.io/badge/JWT-Auth-blue)](https://mvnrepository.com/artifact/io.jsonwebtoken/jjwt/0.9.1)
 [![License](https://img.shields.io/badge/License-MIT-green)](https://github.com/VishnuViswam/sample-web-service/blob/main/LICENSE)
 
 ## About Project
- The industry-level architecture of a web-service application developed in spring boot 2.2.6.
+ The industry-level architecture of a web-service application developed in spring boot 2.5.2.
 
 ## Architecture Contains
 
@@ -22,7 +22,7 @@
   * Application User Password Encryption
   * DB password Encryption.
   * SQL Server
-  * Log4j2
+  * Sl4j
   * Swagger For API Doc
 
 ## Repository contains
@@ -53,9 +53,10 @@ Each Web-services of application will be declared in the controller layer.
 ```Java
 @RequestMapping("/api/v1/user")
 @RestController
+@Validated
 public class UserController {
 
-    private static final Logger logger = LogManager.getLogger(UserController.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserController.class);
 
     @Autowired
     private GeneralServices generalServices;
@@ -63,17 +64,25 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, consumes = MediaType.APPLICATION_JSON_VALUE)
+    /**
+     * Web service to create new user
+     *
+     * @param httpServletRequest
+     * @param user
+     * @return
+     */
+    @PostMapping(consumes = MediaType.APPLICATION_JSON_VALUE, produces = MediaType.APPLICATION_JSON_VALUE)
     public ResponseEntity<Object> createUser(HttpServletRequest httpServletRequest,
-                                             @RequestBody CustomUser user) {
-        logger.info("<--- Service to save new user request : received --->");
-        ApiResponse apiResponse = userService.createUser(user, generalServices.getApiRequestedUserId(httpServletRequest));
-        logger.info("<--- Service to save new user response : given --->");
-        return ResponseEntity.status(HttpStatus.CREATED).body(generalServices.buildJsonData(apiResponse));
+                                             @Valid @RequestBody UserCreateModel user) {
+        logger.debug("<--- Service to save new user request : received --->");
+        ApiSuccessResponse apiResponse = userService.createUser(user, generalServices.getApiRequestedUserId(httpServletRequest));
+        logger.debug("<--- Service to save new user response : given --->");
+        return ResponseEntity.status(HttpStatus.CREATED).body(apiResponse);
 
     }
 
 }
+
 
 ```
 * __@RequestMapping("/api/v1/user")__ annotation used to mention the category of web service.
@@ -82,6 +91,35 @@ public class UserController {
 * __consumes & consumes__ tags will decide the content type of the HTTP request and response.
 
 From this "controller layer" API request will be taken to the service layer. All business logic will be handled here, then it will talk with the database using JPA.
+
+## Common Error Handling
+Whenever any exception happened, it will throw from the respective classes and be handled in the "CommonExceptionHandlingController". We have to handle separately for each type of exception. This function is performed with the help of "ControllerAdvice" named annotation.
+
+### Example 
+```Java
+@ControllerAdvice
+public class CommonExceptionHandlingController extends ResponseEntityExceptionHandler {
+
+    private static final Logger logger = LoggerFactory.getLogger(CommonExceptionHandlingController.class);
+
+    @Override
+    protected ResponseEntity<Object> handleHttpRequestMethodNotSupported(HttpRequestMethodNotSupportedException httpRequestMethodNotSupportedException,
+                                                                         HttpHeaders headers, HttpStatus status, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.NOT_FOUND).body(new ApiErrorResponse(Constants.WRONG_HTTP_METHOD,
+                Constants.WRONG_HTTP_METHOD_ERROR_MESSAGE, Calendar.getInstance().getTimeInMillis()));
+    }
+
+    @Override
+    protected ResponseEntity<Object> handleMethodArgumentNotValid(MethodArgumentNotValidException methodArgumentNotValidException,
+                                                                  HttpHeaders headers, HttpStatus status, WebRequest request) {
+        return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(new ApiErrorResponse(Constants.MANDATORY_FIELDS_ARE_NOT_PRESENT_CODE,
+                Constants.MANDATORY_FIELDS_ARE_NOT_PRESENT_ERROR_MESSAGE, Calendar.getInstance().getTimeInMillis()));
+    }
+
+--------
+--------
+
+```
 
 ## Spring data (JPA) configuration.
 * All interaction of the application with the database will handle by the JPA library.
@@ -188,97 +226,74 @@ public class SampleWebservice extends SpringBootServletInitializer {
 ````java
 
 @Override
-    public ApiResponse userLoginService(String username, String password) {
-        ApiResponse apiResponse = new ApiResponse();
+    public ApiSuccessResponse userLoginService(String username, String password) {
         Tokens tokens = null;
-        CustomUser customUser = null;
-        try {
-            if (validationService.validateUserLogin(username, password)) {
-                Users user = userService.findByUsername(username);
-                if (user != null) {
-                    if (passwordEncryptingService.matches(password,
-                            user.getUserAccount().getPassword())) {
-                        if (user.getUserAccount().getStatus() == Constants.ACTIVE_STATUS) {
-                            String roleName = user.getUserAccount().getUserRole().getRoleName();
-                            // Creating new tokens
-                            tokens = createTokens(user.getUserAccount().getId().toString(), roleName);
-                            // Validating tokens
-                            if (validationService.validateTokens(tokens)) {
-                                customUser = userService.createUserAPIOutData(user);
-                                apiResponse.setData(customUser);
-                                apiResponse.setAccessToken(tokens.getAccessToken());
-                                apiResponse.setRefreshToken(tokens.getRefreshToken());
-                                apiResponse.setStatus(true);
-                                apiResponse.setMessage(Constants.SUCCESS_MESSAGE);
+        Users user = userService.findByUsername(username);
+        if (user != null) {
+            if (passwordEncryptingService.matches(password,
+                    user.getUserAccount().getPassword())) {
+                if (user.getUserAccount().getStatus() == Constants.ACTIVE_STATUS) {
+                    String roleName = user.getUserAccount().getUserRole().getRoleName();
+                    // Creating new tokens
+                    try {
+                        tokens = createTokens(user.getUserAccount().getId().toString(), roleName);
+                    } catch (Exception exception) {
+                        logger.error("Token creation failed : ", exception);
+                        throw new UnknownException();
+                    }
 
-                            } else {
-                                apiResponse.setStatus(false);
-                                apiResponse.setMessage(Constants.SERVER_ERROR_MESSAGE);
-                            }
-
-                        } else if (user.getUserAccount().getStatus() == Constants.DELETED_STATUS) {
-                            apiResponse.setStatus(false);
-                            apiResponse.setMessage(Constants.ACCOUNT_IS_DELETED_MESSAGE);
-                        }
+                    // Validating tokens
+                    if (validationService.validateTokens(tokens)) {
+                        tokens.setUserId(user.getUserAccount().getId());
+                        return new ApiSuccessResponse(tokens);
 
                     } else {
-                        apiResponse.setStatus(false);
-                        apiResponse.setMessage(Constants.WRONG_USERNAME_OR_PASSWORD);
+                        throw new UnknownException();
                     }
 
                 } else {
-                    apiResponse.setStatus(false);
-                    apiResponse.setMessage(Constants.WRONG_USERNAME_OR_PASSWORD);
+                    return new ApiSuccessResponse(new ApiResponseWithCode(Constants.USER_ACCOUNT_IS_INACTIVE_ERROR_CODE,
+                            Constants.USER_ACCOUNT_IS_INACTIVE_ERROR_MESSAGE));
                 }
 
             } else {
-                apiResponse.setStatus(false);
-                apiResponse.setMessage(Constants.INCORRECT_DATA_MESSAGE);
-                logger.error("Login : error: Incorrect data from client");
+                return new ApiSuccessResponse(new ApiResponseWithCode(Constants.USERNAME_OR_PASSWORD_IS_INCORRECT_ERROR_CODE,
+                        Constants.USERNAME_OR_PASSWORD_IS_INCORRECT_ERROR_MESSAGE));
             }
-        } catch (Exception e) {
-            apiResponse.setStatus(false);
-            apiResponse.setMessage(Constants.SERVER_ERROR_MESSAGE);
-            logger.error("Login : error: ", e);
-        }
 
-        return apiResponse;
+        } else {
+            return new ApiSuccessResponse(new ApiResponseWithCode(Constants.USERNAME_OR_PASSWORD_IS_INCORRECT_ERROR_CODE,
+                    Constants.USERNAME_OR_PASSWORD_IS_INCORRECT_ERROR_MESSAGE));
+        }
     }
 
     @Override
-    public ApiResponse createNewAccessTokenUsingRefreshToken(String refreshToken) {
-        ApiResponse apiResponse = new ApiResponse();
+    public ApiSuccessResponse createNewAccessTokenUsingRefreshToken(String refreshToken) {
         Tokens tokens = null;
         UserAccounts userAccount = null;
-        try {
-
-            AppConfigSettings configSettings = appConfigSettingsService.findByConfigKeyAndStatus(Constants.JWT_SECRET_KEY,
-                    Constants.ACTIVE_STATUS);
-            // Validate Refresh token
-            userAccount = jwtTokenHandler.validate(configSettings.getConfigValue(), refreshToken);
-            if (userAccount != null) {
-                // Creating new tokens if provided refresh token is valid
+        AppConfigSettings configSettings = appConfigSettingsService.findByConfigKeyAndStatus(Constants.JWT_SECRET_KEY,
+                Constants.ACTIVE_STATUS);
+        // Validate Refresh token
+        userAccount = jwtTokenHandler.validate(configSettings.getConfigValue(), refreshToken);
+        if (userAccount != null) {
+            // Creating new tokens if provided refresh token is valid
+            try {
                 tokens = createTokens(userAccount.getId().toString(), userAccount.getRole());
-                if (validationService.validateTokens(tokens)) {
-                    apiResponse.setAccessToken(tokens.getAccessToken());
-                    apiResponse.setRefreshToken(tokens.getRefreshToken());
-                    apiResponse.setStatus(true);
-                    apiResponse.setMessage(Constants.SUCCESS_MESSAGE);
-
-                } else {
-                    apiResponse.setStatus(false);
-                    apiResponse.setMessage(Constants.SERVER_ERROR_MESSAGE);
-                }
-            } else {
-                apiResponse.setStatus(false);
-                apiResponse.setMessage(Constants.TOKEN_IS_EXPIRED);
+            } catch (Exception exception) {
+                logger.error("Token creation failed : ", exception);
+                throw new UnknownException();
             }
-        } catch (Exception e) {
-            apiResponse.setStatus(false);
-            apiResponse.setMessage(Constants.SERVER_ERROR_MESSAGE);
-            logger.error("Create new access token : error: ", e);
+            if (validationService.validateTokens(tokens)) {
+                tokens.setUserId(userAccount.getId());
+                return new ApiSuccessResponse(tokens);
+
+            } else {
+                throw new UnknownException();
+            }
+        } else {
+            return new ApiSuccessResponse(new ApiResponseWithCode(Constants.REFRESH_TOKEN_EXPIRED_ERROR_CODE,
+                    Constants.REFRESH_TOKEN_EXPIRED_ERROR_MESSAGE));
         }
-        return apiResponse;
     }
 
 ````
@@ -371,9 +386,9 @@ public class PasswordEncryptingService {
 * Here __encode__ named method is used to encrypt the password.
 * And __matches__ named method is using to cross-check the provided password and actual password of the user.
 
-## Log4j2 Configuration
-* We have one XML file to configure the Log4j2 named by __log4j2.xml__.
-* To log information from each class, we need to inject the respective class to the Log4j2.
+## Log Configuration Using Slf4j
+* We have one XML file to configure the Log named by __logback-spring.xml__.
+* To log information from each class, we need to inject the respective class to Slf4j.
 
 ### Example
 ### UserServiceImpl.java
@@ -381,7 +396,7 @@ public class PasswordEncryptingService {
 @Service("UserService")
 @Scope("prototype")
 public class UserServiceImpl implements UserService {
-    private static final Logger logger = LogManager.getLogger(UserServiceImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(UserServiceImpl.class);
 
 ````
 * Above code snippet shows how we inject the class into the logger. 
@@ -397,15 +412,16 @@ public class UserServiceImpl implements UserService {
 
 ### pom.xml
 ````xml
-        <dependency>
+         <dependency>
             <groupId>io.springfox</groupId>
-            <artifactId>springfox-swagger2</artifactId>
-            <version>2.9.2</version>
+            <artifactId>springfox-boot-starter</artifactId>
+            <version>${springfox.swagger.version}</version>
         </dependency>
+
         <dependency>
             <groupId>io.springfox</groupId>
             <artifactId>springfox-swagger-ui</artifactId>
-            <version>2.9.2</version>
+            <version>${springfox.swagger.version}</version>
         </dependency>
 ````
 * These are the libraries we used in the pom file to integrate Swagger.
@@ -450,7 +466,7 @@ public class SwaggerAPIDocConfig {
 ````
 * As we can see in the above class need to add some basic information about our project.
 * We need to tell swagger from which class needs to create API docs, and that is configured under __.apis(RequestHandlerSelectors.withClassAnnotation,(RestController.class))__ named line.
-* Swagger API doc will be accessible from [http://localhost:8080/SampleWebservice/apidoc](http://localhost:8080/SampleWebservice/apidoc) this link.
+* Swagger API doc will be accessible from [http://localhost:8080/sampleWebService/apidoc](http://localhost:8080/sampleWebService/apidoc) this link.
 
 ## Postman Script
 * We can find 2 Postman JSON script in the repository. Please import both of them into the Postman client application. 

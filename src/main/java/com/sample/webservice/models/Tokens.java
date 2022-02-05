@@ -9,6 +9,8 @@ package com.sample.webservice.models;
  */
 public class Tokens {
 
+    long userId;
+
     private String accessToken;
 
     private String refreshToken;
@@ -21,6 +23,14 @@ public class Tokens {
         super();
         this.accessToken = accessToken;
         this.refreshToken = refreshToken;
+    }
+
+    public long getUserId() {
+        return userId;
+    }
+
+    public void setUserId(long userId) {
+        this.userId = userId;
     }
 
     public String getAccessToken() {

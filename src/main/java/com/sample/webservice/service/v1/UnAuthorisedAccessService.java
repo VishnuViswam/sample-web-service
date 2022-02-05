@@ -1,7 +1,6 @@
-package com.sample.webservice.service;
+package com.sample.webservice.service.v1;
 
-import com.sample.webservice.models.ApiResponse;
-import com.sample.webservice.models.CustomUser;
+import com.sample.webservice.models.ApiSuccessResponse;
 
 /**
  * Interface to declare the unauthorized API services .
@@ -19,7 +18,7 @@ public interface UnAuthorisedAccessService {
      * @param password
      * @return
      */
-    ApiResponse userLoginService(String username, String password);
+    ApiSuccessResponse userLoginService(String username, String password);
 
     /**
      * Service to create new access token using refresh token
@@ -27,5 +26,5 @@ public interface UnAuthorisedAccessService {
      * @param refreshToken
      * @return
      */
-    ApiResponse createNewAccessTokenUsingRefreshToken(String refreshToken);
+    ApiSuccessResponse createNewAccessTokenUsingRefreshToken(String refreshToken);
 }

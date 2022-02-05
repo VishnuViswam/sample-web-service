@@ -1,6 +1,6 @@
-package com.sample.webservice.service;
+package com.sample.webservice.service.v1;
 
-import com.sample.webservice.models.CustomUser;
+import com.sample.webservice.models.v1.UserCreateModel;
 import com.sample.webservice.models.Tokens;
 
 /**
@@ -35,6 +35,6 @@ public interface ValidationService {
      * @param user
      * @return
      */
-    boolean validateUserCreation(CustomUser user);
+    boolean validateUserCreation(UserCreateModel user);
 
 }

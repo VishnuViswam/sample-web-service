@@ -1,27 +1,15 @@
-package com.sample.webservice.serviceimpl;
+package com.sample.webservice.serviceimpl.v1;
 
-import com.sample.webservice.service.GeneralServices;
+import com.sample.webservice.service.v1.GeneralServices;
 import com.sample.webservice.util.Constants;
-import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.fasterxml.jackson.databind.ObjectWriter;
-import org.apache.logging.log4j.LogManager;
-import org.apache.logging.log4j.Logger;
-import org.springframework.beans.factory.annotation.Value;
+import org.slf4j.LoggerFactory;
+import org.slf4j.Logger;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
-import org.springframework.web.multipart.MultipartFile;
 
-import javax.imageio.ImageIO;
 import javax.servlet.http.HttpServletRequest;
-import java.awt.image.BufferedImage;
-import java.io.ByteArrayInputStream;
-import java.io.File;
 import java.io.IOException;
-import java.text.DateFormat;
-import java.text.ParseException;
-import java.text.SimpleDateFormat;
-import java.util.*;
 
 /**
  * Service class to implement the common operations.
@@ -34,7 +22,7 @@ import java.util.*;
 @Scope("prototype")
 public class GeneralServicesImpl implements GeneralServices {
 
-    private static final Logger logger = LogManager.getLogger(GeneralServicesImpl.class);
+    private static final Logger logger = LoggerFactory.getLogger(GeneralServicesImpl.class);
 
     @Override
     public String buildJsonData(Object object) {

@@ -26,9 +26,19 @@ public interface UserRepository extends JpaRepository<Users, Long> {
     /**
      * To find user object using user account id and active status list
      *
-     * @param userId
+     * @param userAccountId
      * @param statusList
      * @return
      */
-    Users findByUserAccountIdAndUserAccountStatusIn(long userId, List<Short> statusList);
+    Users findByUserAccountIdAndUserAccountStatusIn(long userAccountId, List<Short> statusList);
+
+
+    /**
+     * To find user object using user account id and active status
+     *
+     * @param userAccountId
+     * @param status
+     * @return
+     */
+    Users findByUserAccountIdAndUserAccountStatus(long userAccountId, short status);
 }

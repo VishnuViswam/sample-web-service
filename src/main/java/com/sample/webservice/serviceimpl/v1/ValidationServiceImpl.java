@@ -1,8 +1,8 @@
-package com.sample.webservice.serviceimpl;
+package com.sample.webservice.serviceimpl.v1;
 
-import com.sample.webservice.models.CustomUser;
+import com.sample.webservice.models.v1.UserCreateModel;
 import com.sample.webservice.models.Tokens;
-import com.sample.webservice.service.ValidationService;
+import com.sample.webservice.service.v1.ValidationService;
 import com.sample.webservice.util.Constants;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Service;
@@ -43,7 +43,7 @@ public class ValidationServiceImpl implements ValidationService {
 
 
     @Override
-    public boolean validateUserCreation(CustomUser user) {
+    public boolean validateUserCreation(UserCreateModel user) {
         boolean status = true;
         if (user.getRoleId() == null || user.getRoleId() < 1)
             status = false;

@@ -1,6 +1,6 @@
 {
 	"info": {
-		"_postman_id": "fb5566ec-1a79-4527-abff-e45db9a3a226",
+		"_postman_id": "0ac5b410-d33b-41b8-894c-4f700419bc55",
 		"name": "SAMPLE_WEBSERVICES",
 		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
 	},
@@ -11,12 +11,11 @@
 				{
 					"listen": "test",
 					"script": {
-						"id": "d72cfffe-613e-4ae5-840e-62399dfef4ef",
 						"exec": [
 							"var jsonData = pm.response.json();\r",
-							"var atoken = jsonData.accessToken;\r",
+							"var atoken = jsonData.data.accessToken;\r",
 							"pm.environment.set(\"sampleWebserviceAccessToken\",atoken);\r",
-							"var rtoken = jsonData.refreshToken;\r",
+							"var rtoken = jsonData.data.refreshToken;\r",
 							"pm.environment.set(\"sampleWebserviceRefreshToken\",rtoken);"
 						],
 						"type": "text/javascript"
@@ -52,13 +51,13 @@
 					]
 				},
 				"url": {
-					"raw": "localhost:8080/SampleWebservice/login",
+					"raw": "localhost:8080/sampleWebService/login",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"SampleWebservice",
+						"sampleWebService",
 						"login"
 					]
 				}
@@ -81,13 +80,13 @@
 					]
 				},
 				"url": {
-					"raw": "localhost:8080/SampleWebservice/newAccessToken",
+					"raw": "localhost:8080/sampleWebService/newAccessToken",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"SampleWebservice",
+						"sampleWebService",
 						"newAccessToken"
 					]
 				}
@@ -119,16 +118,97 @@
 					}
 				},
 				"url": {
-					"raw": "localhost:8080/SampleWebservice/api/v1/user",
+					"raw": "localhost:8080/sampleWebService/api/v1/user",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"SampleWebservice",
+						"sampleWebService",
 						"api",
 						"v1",
 						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Update existing User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{sampleWebserviceAccessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "PUT",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\r\n\r\n     \"userId\" : 2,\r\n\r\n\t\"username\":\"Vishnu\",\r\n\r\n    \"fullName\":\"Vishnu Viswambharan\",\r\n\r\n    \"emailAddress\":\"vishnu@yahoo.com\",\r\n\r\n    \"phoneNumber\":\"333333\"\r\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/sampleWebService/api/v1/user",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"sampleWebService",
+						"api",
+						"v1",
+						"user"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "Delete a User",
+			"request": {
+				"auth": {
+					"type": "bearer",
+					"bearer": [
+						{
+							"key": "token",
+							"value": "{{sampleWebserviceAccessToken}}",
+							"type": "string"
+						}
+					]
+				},
+				"method": "DELETE",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost:8080/sampleWebService/api/v1/user/2",
+					"host": [
+						"localhost"
+					],
+					"port": "8080",
+					"path": [
+						"sampleWebService",
+						"api",
+						"v1",
+						"user",
+						"2"
 					]
 				}
 			},
@@ -150,13 +230,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/SampleWebservice/api/v1/user",
+					"raw": "localhost:8080/sampleWebService/api/v1/user",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"SampleWebservice",
+						"sampleWebService",
 						"api",
 						"v1",
 						"user"
@@ -181,13 +261,13 @@
 				"method": "GET",
 				"header": [],
 				"url": {
-					"raw": "localhost:8080/SampleWebservice/api/v1/user/1",
+					"raw": "localhost:8080/sampleWebService/api/v1/user/1",
 					"host": [
 						"localhost"
 					],
 					"port": "8080",
 					"path": [
-						"SampleWebservice",
+						"sampleWebService",
 						"api",
 						"v1",
 						"user",
@@ -197,6 +277,5 @@
 			},
 			"response": []
 		}
-	],
-	"protocolProfileBehavior": {}
+	]
 }

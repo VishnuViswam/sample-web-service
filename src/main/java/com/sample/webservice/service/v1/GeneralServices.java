@@ -1,4 +1,4 @@
-package com.sample.webservice.service;
+package com.sample.webservice.service.v1;
 
 
 import javax.servlet.http.HttpServletRequest;
