@@ -34,7 +34,7 @@
 
 ## Steps to run applications
 
-* Install JDK 11 or latest. 
+* Install JDK 14 or latest. 
 * Clone the Project repository into local. 
 * Install SQL server 2012.
 * Create application DB and user
@@ -178,22 +178,51 @@ spring.jpa.hibernate.connection.provider_class=org.hibernate.hikaricp.internal.H
 
 ````
 ## Database Configuration
-* Database name, connection URL, user credentials all these kinds of values are configured in the application.properties file.
+* Database name will be present in the application.properties file.
+* And other information like connection URL, user credentials will be mentioned in two different other property files.<br/>
+**application-dev.properties**
+* It will have the configurations which we used for the development.<br/>
+**application-pro.properties**
+* It will have the configurations which we used for the production.
+````properties
+spring.profiles.active=dev
+````
+* Above mentioned property configuration will be present in the main "application.properties" file.
+* It will decide which sub property file should load to the system(dev or pro).
 
 ### application.properties
 ````properties
-spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=sample_webservice_db
+#DB config
+spring.datasource.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver
+````
+### application-dev.properties
+````properties
+#DB config
+spring.datasource.url=jdbc:sqlserver://localhost:1433;databaseName=sample_webservice_db_dev
 spring.datasource.username=dbuser
 spring.datasource.password=ENC(tZTfehMYyz4EO0F0uY8fZItE7K35RtkA)
-spring.datasource.driverClassName=com.microsoft.sqlserver.jdbc.SQLServerDriver // is the Database server which we are using
+#spring.datasource.username=dbuser
+#spring.datasource.password=dbuserpassword
+````
+### application-pro.properties
+````properties
+#DB config
+spring.datasource.url=jdbc:sqlserver://192.168.1.119:1433;databaseName=sample_webservice_db
+spring.datasource.username=proUser
+spring.datasource.password=ENC(proUserPswd)
 ````
 ### Database password encryption
-* Application database password will be encrypted using __Jasypt __ library with the help of a encryption key.
-* This encryption key need to add in the system variables 
+* Application database password will be encrypted using **Jasypt** library with the help of a encryption key.
+* This encryption key needs to add in the computer system variables of environmental variables under "JASYPT_ENCRYPTOR_PASSWORD" named key.
+* We have to mention encrypted database password in the property file as follows. This is how the system will understand the password needs to be decrypted using secret key which is added in the system variables.
 ````properties
 spring.datasource.password=ENC(tZTfehMYyz4EO0F0uY8fZItE7K35RtkA)
 ````
-* Above is the line in the property file, which help the application to decrypt the password using the key which is previously added in the system variables. 
+* For the **Jasypt** decryption we need to mention default encryption configuration in the property file as follows.
+````properties
+jasypt.encryptor.algorithm=PBEWithMD5AndDES
+jasypt.encryptor.iv-generator-classname=org.jasypt.iv.NoIvGenerator
+````
 
 #### SampleWebservice.java 
 
